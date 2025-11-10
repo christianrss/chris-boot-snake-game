@@ -29,6 +29,27 @@ setup_game:
     mov ax, 0003h
     int 10h
 
+    ;; Set up video memory
+    mov ax, VIDMEM
+    mov es, ax      ; ES:DI <- video memory (0B800:000 or B8000)
+
+    ;; Set 1st snake segment "head"
+    mov ax, [playerX]
+    mov word [SNAKEXARRAY], ax
+    mov ax, [playerY]
+    mov word [SNAKEYARRAY], ax
+
+;; Game loop
+game_loop:
+    ;; Clear screen very loop iteration
+    mov ax, BGCOLOR
+    xor di, di
+    mov cx, SCREENW*SCREENH
+    rep stosw                   ; mov [ES:DI], AX & inc di
+
+
+jmp game_loop
+
 ;; Bootsector padding
 times 510 - ($-$$) db 0
 

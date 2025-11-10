@@ -53,7 +53,7 @@ game_loop:
     mov ax, SNAKECOLOR
     .snake_loop:
         imul di, [SNAKEYARRAY+bx], SCREENW*2    ; Y position of snake segment, 2 bytes per character
-        imul dx, [SNAKEYARRAY+bx], 2            ; X position of snake segment, 2 bytes per character
+        imul dx, [SNAKEXARRAY+bx], 2            ; X position of snake segment, 2 bytes per character
         add di, dx
         stosw
         inc bx
@@ -61,6 +61,11 @@ game_loop:
     loop .snake_loop
 
     ;; Draw apple
+    imul di, [appleY], SCREENW*2
+    imul dx, [appleX], 2
+    add di, dx
+    mov ax, APPLECOLOR
+    stosw
 
 jmp game_loop
 

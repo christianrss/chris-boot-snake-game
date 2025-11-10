@@ -118,6 +118,33 @@ game_loop:
 
     ;; Lose conditions
     ;; 1) Hit borders of screen
+    cmp word [playerY], -1      ; Top of screen
+    je game_lost
+    cmp word [playerY], SCREENH ; Bottom of screen
+    je game_lost
+    cmp word [playerX], -1      ; Left of screen
+    je game_lost
+    cmp word [playerX], SCREENW ; Right of screen
+
+    ;; 2) Hit part of snake
+    cmp word [snakeLength], 1   ; Only have starting segment
+    je get_player_input
+
+    mov bx, 2                   ; Array indexes, start at 2nd array element
+    mov cx, [snakeLength]       ; Loop Counter
+    check_hit_snake_loop:
+        mov ax, [playerX]
+        cmp ax, [SNAKEXARRAY+bx]
+        jne .increment
+
+        mov ax, [playerY]
+        cmp ax, [SNAKEYARRAY+bx]
+        je game_lost                ; Hit snake body, lose game
+
+        .increment:
+            inc bx
+            inc bx
+    loop check_hit_snake_loop
 
     ;; 2) Hit part of snake
 
@@ -171,6 +198,20 @@ game_loop:
 
 jmp game_loop
 
+;; End conditions
+game_won:
+    jmp reset
+game_lost:
+    mov dword [ES:0000], 1F4F1F4Ch  ; LO
+    mov dword [ES:0004], 1F451F53h  ; SE
+
+;; Reset the game
+reset:
+    xor ah, ah
+    int 16h
+    
+    jmp 0FFFFh:0000h    ;; Far jump to reset vector, "warm reboot"
+;;  int 19h             ;; Alternative reset, restarts qemu
 ;; Bootsector padding
 times 510 - ($-$$) db 0
 

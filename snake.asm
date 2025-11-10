@@ -193,6 +193,56 @@ game_loop:
     check_apple:
         mov byte [direction], bl        ; Update direction
 
+        mov ax, [playerX]
+        cmp ax, [appleX]
+        jne delay_loop
+        
+        mov ax, [playerY]
+        cmp ax, [appleY]
+        jne delay_loop
+
+        ;; Hit apple, increase snake length
+        inc word [snakeLength]
+        cmp word [snakeLength], WINCOND
+        je game_won
+
+    ;; Did no win yet, spawn next apple
+    next_apple:
+        ;;  Random X position
+        xor ah, ah
+        int 1Ah             ; Timer ticks since midnight in CX:DX
+        mov ax, dx          ; Lower half of timer ticks
+        xor dx, dx          ; Clear out upper half of dividend
+        mov cx, SCREENW
+        div cx              ; (DX/AX) / CX; AX = quotient, DX = remainder (0-79)
+        mov word [appleX], dx
+
+        ;; Random Y position
+        xor ah, ah
+        int 1Ah             ; Timer ticks since midnight in CX:DX
+        mov ax, dx          ; Lower half of timer ticks
+        xor dx, dx          ; Clear out upper half of dividend
+        mov cx, SCREENH
+        div cx              ; (DX/AX) / CX; AX = quotient, DX = remainder (0-24)
+        mov word [appleY], dx
+
+    ;; Check if apple spawned inside of snake
+    xor bx, bx              ; array index
+    mov cx, [snakeLength]   ; loop counter
+    .check_loop:
+        mov ax, [appleX]
+        cmp ax, [SNAKEXARRAY+bx]
+        jne .increment
+
+        mov ax, [appleY]
+        cmp ax, [SNAKEXARRAY+bx]
+        je next_apple               ; Apple did spawn in snake, make a new one
+
+        .increment:
+            inc bx
+            inc bx
+    loop .check_loop
+
     delay_loop:
         mov bx, [TIMER]
         inc bx
@@ -205,6 +255,8 @@ jmp game_loop
 
 ;; End conditions
 game_won:
+    mov dword [ES:0000], 1F491F57h  ; WI
+    mov dword [ES:0004], 1F211F4Eh  ; N!
     jmp reset
 game_lost:
     mov dword [ES:0000], 1F4F1F4Ch  ; LO

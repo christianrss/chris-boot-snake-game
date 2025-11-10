@@ -47,6 +47,20 @@ game_loop:
     mov cx, SCREENW*SCREENH
     rep stosw                   ; mov [ES:DI], AX & inc di
 
+    ;; Draw snake
+    xor bx, bx                  ; Array index
+    mov cx, [snakeLength]       ; Loop counter
+    mov ax, SNAKECOLOR
+    .snake_loop:
+        imul di, [SNAKEYARRAY+bx], SCREENW*2    ; Y position of snake segment, 2 bytes per character
+        imul dx, [SNAKEYARRAY+bx], 2            ; X position of snake segment, 2 bytes per character
+        add di, dx
+        stosw
+        inc bx
+        inc bx
+    loop .snake_loop
+
+    ;; Draw apple
 
 jmp game_loop
 

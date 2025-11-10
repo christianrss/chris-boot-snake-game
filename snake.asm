@@ -23,7 +23,7 @@ playerX:        dw 40
 playerY:        dw 12
 appleX:         dw 16
 appleY:         dw 8
-direction:      db 0
+direction:      db 4
 snakeLength:    dw 1
 
 ;; LOGIC ------------
@@ -116,7 +116,50 @@ game_loop:
     mov ax, [playerY]
     mov word [SNAKEYARRAY], ax
 
+    ;; Lose conditions
+    ;; 1) Hit borders of screen
 
+    ;; 2) Hit part of snake
+
+    get_player_input:
+        mov bl, [direction]     ; Save current direction
+
+        mov ah, 1
+        int 16h                 ; Get keyboard status
+        jz check_apple          ; If no key was pressed, move on
+
+        xor ah, ah
+        int 16h                 ; Get keystore, AH = scancode, AL = ascii char entered
+
+        cmp al, 'w'
+        je w_pressed
+        cmp al, 's'
+        je s_pressed
+        cmp al, 'a'
+        je a_pressed
+        cmp al, 'd'
+        je d_pressed
+
+        jmp check_apple
+
+        w_pressed:
+            mov bl, UP
+            jmp check_apple
+        
+        s_pressed:
+            mov bl, DOWN
+            jmp check_apple
+
+        a_pressed:
+            mov bl, LEFT
+            jmp check_apple
+
+        d_pressed:
+            mov bl, RIGHT
+
+    ;; Did player hit apple?
+    check_apple:
+        mov byte [direction], bl        ; Update direction
 
     delay_loop:
         mov bx, [TIMER]

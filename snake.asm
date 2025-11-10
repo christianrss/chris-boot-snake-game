@@ -42,6 +42,11 @@ setup_game:
     mov ax, [playerY]
     mov word [SNAKEYARRAY], ax
 
+    ;; Hide cursor
+    mov ah, 02h
+    mov dx, 2600h   ; DH = row, DL = col, cursor is off the visible screen
+    int 10h
+
 ;; Game loop
 game_loop:
     ;; Clear screen very loop iteration

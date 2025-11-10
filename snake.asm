@@ -14,13 +14,16 @@ SNAKECOLOR     equ 2020h
 TIMER          equ 046Ch
 SNAKEXARRAY    equ 1000h
 SNAKEYARRAY    equ 2000h 
-
+UP             equ 0
+DOWN           equ 1
+LEFT           equ 2
+RIGHT          equ 3
 ;; VARIABLES
 playerX:        dw 40
 playerY:        dw 12
 appleX:         dw 16
 appleY:         dw 8
-direction:      db 4
+direction:      db 0
 snakeLength:    dw 1
 
 ;; LOGIC ------------
@@ -66,6 +69,54 @@ game_loop:
     add di, dx
     mov ax, APPLECOLOR
     stosw
+
+    ;; Move snake in current direction
+    mov al, [direction]
+    cmp al, UP
+    je move_up
+    cmp al, DOWN
+    je move_down
+    cmp al, LEFT
+    je move_left
+    cmp al, RIGHT
+    je move_right
+
+    jmp update_snake
+
+    move_up:
+        dec word [playerY]      ; Move up 1 row on the screen
+        jmp update_snake
+    move_down:
+        inc word [playerY]      ; Move down 1 row on the screen
+        jmp update_snake
+
+    move_left:
+        dec word [playerX]     ; Move left 1 column on the screen
+        jmp update_snake
+    move_right:
+        inc word [playerX]     ; Move right 1 column on the screen
+
+    ;; Update snake position from playerX/Y changes
+    update_snake:
+        ;; Update all snake segments past the "head", iterate back to front
+        imul bx, [snakeLength], 2   ; each array element = 2 bytes
+        .snake_loop:
+            mov ax, [SNAKEXARRAY-2+bx]          ; X value
+            mov word [SNAKEXARRAY+bx], ax
+            mov ax, [SNAKEYARRAY-2+bx]          ; Y value
+            mov word [SNAKEYARRAY+bx], ax
+
+            dec bx                              ; Get previous array elem
+            dec bx                              ; Stop at first element "head"
+        jnz .snake_loop
+
+    ;; Store updated values to head of snakes in arrays
+    mov ax, [playerX]
+    mov word [SNAKEXARRAY], ax
+    mov ax, [playerY]
+    mov word [SNAKEYARRAY], ax
+
+
 
     delay_loop:
         mov bx, [TIMER]
